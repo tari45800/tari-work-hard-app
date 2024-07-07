@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { theme } from "./colors";
 import { useState } from "react";
@@ -29,14 +30,28 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 30,
-    marginTop: 20,
+    marginVertical: 20,
     fontSize: 18,
+  },
+  toDo: {
+    backgroundColor: theme.toDoBg,
+    marginBottom: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  toDoText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
+
   const work = () => {
     setWorking(true);
   };
@@ -44,7 +59,17 @@ export default function App() {
     setWorking(false);
   };
   const onChangeText = (payload) => setText(payload);
+  const addToDo = () => {
+    if (text === "") {
+      return;
+    }
 
+    const newToDos = { ...toDos, [Date.now()]: { text, work: working } };
+
+    setToDos(newToDos);
+    setText("");
+  };
+  console.log(toDos);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -68,11 +93,20 @@ export default function App() {
       </View>
       <View>
         <TextInput
+          onSubmitEditing={addToDo}
+          returnKeyType="done"
           value={text}
           onChangeText={onChangeText}
           style={styles.input}
           placeholder={working ? "할 일을 추가하셔" : "어디로 가고 싶으셔"}
         ></TextInput>
+        <ScrollView>
+          {Object.keys(toDos).map((key) => (
+            <View style={styles.toDo} key={key}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
       <StatusBar style="auto" />
     </View>
