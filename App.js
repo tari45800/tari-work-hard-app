@@ -64,7 +64,7 @@ export default function App() {
       return;
     }
 
-    const newToDos = { ...toDos, [Date.now()]: { text, work: working } };
+    const newToDos = { ...toDos, [Date.now()]: { text, working } };
 
     setToDos(newToDos);
     setText("");
@@ -101,11 +101,13 @@ export default function App() {
           placeholder={working ? "할 일을 추가하셔" : "어디로 가고 싶으셔"}
         ></TextInput>
         <ScrollView>
-          {Object.keys(toDos).map((key) => (
-            <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-            </View>
-          ))}
+          {Object.keys(toDos).map((key) =>
+            toDos[key].working === working ? (
+              <View style={styles.toDo} key={key}>
+                <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              </View>
+            ) : null
+          )}
         </ScrollView>
       </View>
       <StatusBar style="auto" />
