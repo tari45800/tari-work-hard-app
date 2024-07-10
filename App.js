@@ -6,9 +6,12 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
 import { theme } from "./colors";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Fontisto } from '@expo/vector-icons';
 
 const styles = StyleSheet.create({
   container: {
@@ -39,6 +42,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
   },
   toDoText: {
     color: "white",
@@ -47,19 +53,29 @@ const styles = StyleSheet.create({
   },
 });
 
+const STORAGE_KEY = "@toDos";
+
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
 
+  useEffect(() => {
+    loadToDos()
+    }, [])
+
+
   const work = () => {
     setWorking(true);
   };
+
   const travel = () => {
     setWorking(false);
   };
+
   const onChangeText = (payload) => setText(payload);
-  const addToDo = () => {
+
+  const addToDo = async () => {
     if (text === "") {
       return;
     }
@@ -67,9 +83,37 @@ export default function App() {
     const newToDos = { ...toDos, [Date.now()]: { text, working } };
 
     setToDos(newToDos);
+    await saveToDos(newToDos)
     setText("");
   };
-  console.log(toDos);
+
+  const deleteToDo = async (key) => {
+    Alert.alert("할일을 삭제합니다", "정말로?", [
+      {text : "취소"},
+      {text : "확인", onPress: () => {
+        const newToDos = {...toDos}
+        delete newToDos[key];
+        setToDos(newToDos);
+         saveToDos(newToDos)
+      }},
+    ])
+  }
+
+
+  const saveToDos = async (toSabe) => {
+    await AsyncStorage.setItem("@toDos", JSON.stringify(toSabe))
+  }
+
+  const loadToDos = async () => {
+    try {
+      const s = await AsyncStorage.getItem(STORAGE_KEY);
+      setToDos(JSON.parse(s));
+    } catch (error) {
+      alert('애러발생')
+    }
+
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -105,6 +149,11 @@ export default function App() {
             toDos[key].working === working ? (
               <View style={styles.toDo} key={key}>
                 <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                <TouchableOpacity onPress={() => {
+                  deleteToDo(key)
+                }}>
+                  <Fontisto name="trash" size={18} color={theme.gray} />
+                </TouchableOpacity>
               </View>
             ) : null
           )}
